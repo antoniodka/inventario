@@ -1,6 +1,6 @@
 
-
-<!DOCTYPE html><html lang="es">
+      
+      <!DOCTYPE html><html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -142,18 +142,12 @@
       color: #555;
     }
   #imagenExpandida {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   max-width: 90%;
   max-height: 90%;
-  z-index: 9999;
-  display: none;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
-}
-</style>
+}#overlayImagen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; justify-content: center; align-items: center; z-index: 9998; } </style>
+
 </head>
 <body>
   <header>Inventario</header>
@@ -202,11 +196,14 @@
 }
 function expandirImagen(img) {
   const overlay = document.getElementById('overlayImagen');
- 
+  const imagenExpandida = document.getElementById('imagenExpandida');
+  imagenExpandida.src = img.src;
+  overlay.style.display = 'flex';
+}
 
 function cerrarImagen() {
-  const imagenExpandida = document.getElementById('imagenExpandida');
-  imagenExpandida.style.display = 'none';
+  const overlay = document.getElementById('overlayImagen');
+  overlay.style.display = 'none';
 }
 </script>  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>  <script>
     const firebaseConfig = {
