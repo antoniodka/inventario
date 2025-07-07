@@ -1,5 +1,6 @@
-<!DOCTYPE html>
-<html lang="es">
+
+
+<!DOCTYPE html><html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -60,14 +61,16 @@
       border-radius: 6px;
       object-fit: cover;
       margin-left: 1rem;
+      border: 2px solid black;
+      margin-right: 1rem;
     }
     .acciones {
       margin-top: 0.5rem;
       display: flex;
       flex-direction: column;
+      gap: 0.3rem;
     }
     .acciones button {
-      margin-top: 0.3rem;
       padding: 0.5rem;
       font-size: 0.9rem;
       border: none;
@@ -132,41 +135,91 @@
     #modalContent button:last-of-type {
       background-color: #ccc;
     }
-  </style>
+    #cargando {
+      display: none;
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #555;
+    }
+  #imagenExpandida {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 90%;
+  max-height: 90%;
+  z-index: 9999;
+  display: none;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+</style>
 </head>
 <body>
   <header>Inventario</header>
   <input type="text" id="buscar" placeholder="Buscar elemento...">
   <div id="inventario"></div>
-  <button id="agregarBtn">+</button>
-
-  <div id="modal">
+  <button id="agregarBtn">+</button>  <div id="modal">
     <div id="modalContent">
+      <div id="cargando">Cargando imagen...</div>
       <input type="text" id="nombre" placeholder="Nombre del elemento">
       <input type="number" id="cantidad" placeholder="Cantidad">
       <input type="text" id="etiqueta" placeholder="Etiqueta">
-      <input type="file" id="imagen">
-      <button onclick="guardarElemento()">Guardar</button>
-      <button onclick="cerrarModal()">Cancelar</button>
+      <label for="imagen">Selecciona o toma una foto:</label>
+      <input type="file" id="imagen" accept="image/*" capture="environment" onchange="vistaPreviaImagen(event)">
+      <div id="previewContainer" style="text-align:center; margin-top:10px;"></div>
+      <button id="guardarBtn" onclick="guardarElemento()">Guardar</button>
+      <button id="cancelarBtn" onclick="cerrarModal()">Cancelar</button>
     </div>
-  </div>
+  </div>  <!-- Firebase SDK -->  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">function vistaPreviaImagen(event) {
+  const archivo = event.target.files[0];
+  const contenedor = document.getElementById('previewContainer');
+  contenedor.innerHTML = '';
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  if (archivo) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.style.maxWidth = '100%';
+      img.style.maxHeight = '150px';
+      img.style.marginTop = '10px';
+      img.style.border = '1px solid #ccc';
+      img.style.borderRadius = '6px';
+      contenedor.appendChild(img);
 
-  <script>
-    // Configura tus credenciales Firebase
-  const firebaseConfig = {
-  apiKey: "AIzaSyA6GUJNMyVMXmiH4wFxqBDVPJfkFzFICYI",
-  authDomain: "inventario-track.firebaseapp.com",
-  projectId: "inventario-track",
-  storageBucket: "inventario-track.firebasestorage.app",
-  messagingSenderId: "742946363109",
-  appId: "1:742946363109:web:8ee3cd05ec0a5ec794660c",
-  measurementId: "G-S4QMN7XJ11"
+      const nombreArchivo = document.createElement('div');
+      nombreArchivo.textContent = archivo.name;
+      nombreArchivo.style.fontSize = '0.85rem';
+      nombreArchivo.style.marginTop = '5px';
+      contenedor.appendChild(nombreArchivo);
+    };
+    reader.readAsDataURL(archivo);
+  }
 };
+    reader.readAsDataURL(archivo);
+  }
+}
+function expandirImagen(img) {
+  const imagenExpandida = document.getElementById('imagenExpandida');
+  imagenExpandida.src = img.src;
+  imagenExpandida.style.display = 'block';
+}
+
+function cerrarImagen() {
+  const imagenExpandida = document.getElementById('imagenExpandida');
+  imagenExpandida.style.display = 'none';
+}
+</script>  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyA6GUJNMyVMXmiH4wFxqBDVPJfkFzFICYI",
+      authDomain: "inventario-track.firebaseapp.com",
+      projectId: "inventario-track",
+      storageBucket: "inventario-track.firebasestorage.app",
+      messagingSenderId: "742946363109",
+      appId: "1:742946363109:web:8ee3cd05ec0a5ec794660c",
+      measurementId: "G-S4QMN7XJ11"
+    };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const storage = firebase.storage();
@@ -174,6 +227,9 @@
     const inventarioDiv = document.getElementById('inventario');
     const buscarInput = document.getElementById('buscar');
     const modal = document.getElementById('modal');
+    const guardarBtn = document.getElementById('guardarBtn');
+    const cancelarBtn = document.getElementById('cancelarBtn');
+    const cargando = document.getElementById('cargando');
     let editandoId = null;
 
     document.getElementById('agregarBtn').addEventListener('click', () => {
@@ -190,32 +246,63 @@
       document.getElementById('cantidad').value = '';
       document.getElementById('etiqueta').value = '';
       document.getElementById('imagen').value = '';
+      cargando.style.display = 'none';
+      guardarBtn.disabled = false;
+      cancelarBtn.disabled = false;
       editandoId = null;
     }
 
     async function guardarElemento() {
-      const nombre = document.getElementById('nombre').value;
-      const cantidad = document.getElementById('cantidad').value;
-      const etiqueta = document.getElementById('etiqueta').value;
-      const imagenFile = document.getElementById('imagen').files[0];
+  function comprimirImagen(file, maxWidth = 400, quality = 0.3) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const scaleSize = maxWidth / img.width;
+          canvas.width = maxWidth;
+          canvas.height = img.height * scaleSize;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(resolve, 'image/webp', quality);
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  guardarBtn.disabled = true;
+  cancelarBtn.disabled = true;
+  cargando.style.display = 'block';
 
-      let imagenUrl = '';
-      if (imagenFile) {
-        const storageRef = storage.ref('imagenes/' + Date.now() + '_' + imagenFile.name);
-        await storageRef.put(imagenFile);
-        imagenUrl = await storageRef.getDownloadURL();
-      }
+  const nombre = document.getElementById('nombre').value;
+  const cantidad = document.getElementById('cantidad').value;
+  const etiqueta = document.getElementById('etiqueta').value;
+  const imagenFile = document.getElementById('imagen').files[0];
 
-      const datos = { nombre, cantidad: parseInt(cantidad), etiqueta, imagenUrl };
+  let imagenUrl = '';
+  if (imagenFile) {
+    const imagenComprimida = await comprimirImagen(imagenFile, 400, 0.3);
+    const nombreArchivo = 'imagenes/' + Date.now() + '_' + imagenFile.name;
+    const storageRef = storage.ref(nombreArchivo);
+    await storageRef.put(imagenComprimida);
+    imagenUrl = await storageRef.getDownloadURL();
+  }
 
-      if (editandoId) {
-        await db.collection('inventario').doc(editandoId).update(datos);
-      } else {
-        await db.collection('inventario').add(datos);
-      }
+  const datos = { nombre, cantidad: parseInt(cantidad), etiqueta, imagenUrl };
 
-      cerrarModal();
-      cargarInventario();
+  if (editandoId) {
+    await db.collection('inventario').doc(editandoId).update(datos);
+  } else {
+    await db.collection('inventario').add(datos);
+  }
+
+  guardarBtn.disabled = false;
+  cancelarBtn.disabled = false;
+  cargando.style.display = 'none';
+  cerrarModal();
+  cargarInventario();
     }
 
     async function cargarInventario() {
@@ -233,7 +320,7 @@
             <strong>${item.nombre}</strong>
             <small>Cantidad: ${item.cantidad}</small>
           </div>
-          ${item.imagenUrl ? `<img src="${item.imagenUrl}" alt="img">` : ''}
+          ${item.imagenUrl ? `<img src="${item.imagenUrl}" alt="img" loading="lazy" ontouchstart="expandirImagen(this)" ontouchend="cerrarImagen()">` : ''}
           <div class="acciones">
             <button onclick="editar('${item.id}')">Editar</button>
             <button onclick="eliminar('${item.id}')">Eliminar</button>
@@ -273,6 +360,6 @@
     });
 
     cargarInventario();
-  </script>
+  </script><img id="imagenExpandida" />
 </body>
 </html>
